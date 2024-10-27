@@ -283,5 +283,6 @@ cython_debug/
 # -------- File / Folder gitignore --------
 .env
 dataset/
-# joern-cli/
+joern-cli/
+pdgs/
 # -------- File / Folder gitignore --------
