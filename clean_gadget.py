@@ -153,13 +153,15 @@ keywords = frozenset(['__asm', '__builtin', '__cdecl', '__declspec', '__except',
                       'OracleDataAdapter.Update', 'OleDbCommand.ExecuteScalar', 'stdin', 'SqlDataSource.Delete',
                       'OleDbDataAdapter.Fill', 'fstream.putback', 'IDbDataAdapter.Fill', '_wspawnl', 'fwprintf',
                       'sem_wait', '_unlink', 'ldap_search_ext_sW', 'signal', 'PQclear', 'PQfinish', 'PQexec',
-                      'PQresultStatus','ifdef','endif','bool','void'])
+                      'PQresultStatus', 'ifdef', 'endif', 'bool', 'void'])
 # holds known non-user-defined functions; immutable set
 main_set = frozenset({'main'})
 # arguments in main function; immutable set
 main_args = frozenset({'argc', 'argv'})
 
 # input is a list of string lines
+
+
 def clean_gadget(gadget):
     # dictionary; map function name to symbol name + number
     fun_symbols = {}
@@ -170,12 +172,14 @@ def clean_gadget(gadget):
     var_count = 1
 
     # regular expression to catch multi-line comment
-    rx_comment = re.compile('\*/\s*$')
+    # rx_comment = re.compile('\*/\s*$')
+    rx_comment = re.compile(r'\*/\s*$')
     # regular expression to find function name candidates
     rx_fun = re.compile(r'\b([_A-Za-z]\w*)\b(?=\s*\()')
     # regular expression to find variable name candidates
-    #rx_var = re.compile(r'\b([_A-Za-z]\w*)\b(?!\s*\()')
-    rx_var = re.compile(r'\b([_A-Za-z]\w*)\b(?:(?=\s*\w+\()|(?!\s*\w+))(?!\s*\()')
+    # rx_var = re.compile(r'\b([_A-Za-z]\w*)\b(?!\s*\()')
+    rx_var = re.compile(
+        r'\b([_A-Za-z]\w*)\b(?:(?=\s*\w+\()|(?!\s*\w+))(?!\s*\()')
 
     # final cleaned gadget output to return to interface
     cleaned_gadget = []
@@ -202,10 +206,10 @@ def clean_gadget(gadget):
             for fun_name in user_fun:
                 if len({fun_name}.difference(main_set)) != 0 and len({fun_name}.difference(keywords)) != 0:
                     # DEBUG
-                    #print('comparing ' + str(fun_name + ' to ' + str(main_set)))
-                    #print(fun_name + ' diff len from main is ' + str(len({fun_name}.difference(main_set))))
-                    #print('comparing ' + str(fun_name + ' to ' + str(keywords)))
-                    #print(fun_name + ' diff len from keywords is ' + str(len({fun_name}.difference(keywords))))
+                    # print('comparing ' + str(fun_name + ' to ' + str(main_set)))
+                    # print(fun_name + ' diff len from main is ' + str(len({fun_name}.difference(main_set))))
+                    # print('comparing ' + str(fun_name + ' to ' + str(keywords)))
+                    # print(fun_name + ' diff len from keywords is ' + str(len({fun_name}.difference(keywords))))
                     ###
                     # check to see if function name already in dictionary
                     if fun_name not in fun_symbols.keys():
@@ -213,16 +217,17 @@ def clean_gadget(gadget):
                         fun_count += 1
                     # ensure that only function name gets replaced (no variable name with same
                     # identifier); uses positive lookforward
-                    ascii_line = re.sub(r'\b(' + fun_name + r')\b(?=\s*\()', fun_symbols[fun_name], ascii_line)
+                    ascii_line = re.sub(
+                        r'\b(' + fun_name + r')\b(?=\s*\()', fun_symbols[fun_name], ascii_line)
 
             for var_name in user_var:
                 # next line is the nuanced difference between fun_name and var_name
                 if len({var_name}.difference(keywords)) != 0 and len({var_name}.difference(main_args)) != 0:
                     # DEBUG
-                    #print('comparing ' + str(var_name + ' to ' + str(keywords)))
-                    #print(var_name + ' diff len from keywords is ' + str(len({var_name}.difference(keywords))))
-                    #print('comparing ' + str(var_name + ' to ' + str(main_args)))
-                    #print(var_name + ' diff len from main args is ' + str(len({var_name}.difference(main_args))))
+                    # print('comparing ' + str(var_name + ' to ' + str(keywords)))
+                    # print(var_name + ' diff len from keywords is ' + str(len({var_name}.difference(keywords))))
+                    # print('comparing ' + str(var_name + ' to ' + str(main_args)))
+                    # print(var_name + ' diff len from main args is ' + str(len({var_name}.difference(main_args))))
                     ###
                     # check to see if variable name already in dictionary
                     if var_name not in var_symbols.keys():
@@ -230,13 +235,14 @@ def clean_gadget(gadget):
                         var_count += 1
                     # ensure that only variable name gets replaced (no function name with same
                     # identifier); uses negative lookforward
-                    ascii_line = re.sub(r'\b(' + var_name + r')\b(?:(?=\s*\w+\()|(?!\s*\w+))(?!\s*\()', \
+                    ascii_line = re.sub(r'\b(' + var_name + r')\b(?:(?=\s*\w+\()|(?!\s*\w+))(?!\s*\()',
                                         var_symbols[var_name], ascii_line)
 
             cleaned_gadget.append(ascii_line)
     # return the list of cleaned lines
     # print(cleaned_gadget)
     return cleaned_gadget
+
 
 if __name__ == '__main__':
     test_gadget = ['231 151712/shm_setup.c inputfunc 11\n',
@@ -253,7 +259,8 @@ if __name__ == '__main__':
                     's = (invalid_memory_access_012_s_001 *)calloc(1,sizeof(invalid_memory_access_012_s_001));',
                     's->a = 20;', 's->b = 20;', 's->uninit = 20;', 'free(s);]']
 
-    test_gadgetline = ['function(File file, Buffer buff)', 'this is a comment test */']
+    test_gadgetline = [
+        'function(File file, Buffer buff)', 'this is a comment test */']
 
     split_test = 'printf ( " " , variable ++  )'.split()
 
